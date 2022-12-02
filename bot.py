@@ -1,6 +1,5 @@
 import telebot
 import config
-import random
 import json
 from constants import *
 
@@ -10,21 +9,32 @@ bot = telebot.TeleBot(config.TOKEN)
 with open('./users.txt') as fi:
     di = json.load(fi)
 
+
 @bot.message_handler(content_types=['text'])
-def all_years(message):
-    user_key_id = str(message.chat.id)
-    if user_key_id not in di:
-        di[user_key_id] = {"year": 0, "group": 0}
-    if di[user_key_id]['year']:
-        if di[user_key_id]['group']:
-            pass
-            #show_menu()
+def check(message):
+    user_id = str(message.chat.id)
+
+    if user_id not in di:
+        di[user_id] = {FACULTY_KEY: 0, FORM_KEY: 0, YEAR_KEY: 0, GROUP_KEY: 0}
+
+    if di[user_id][FACULTY_KEY]:
+        if di[user_id][FORM_KEY]:
+            if di[user_id][YEAR_KEY]:
+                if di[user_id][GROUP_KEY]:
+                    pass
+                    # show_menu()
+                else:
+                    save_dict()
+                    # choose_group(di[user_key_id]['year'])
+            else:
+                save_dict()
+                # choose_year_och(user_key_id)
         else:
             save_dict()
-            #choose_group(di[user_key_id]['year'])
+            choose_form(user_id)
     else:
         save_dict()
-        choose_year(message.chat.id)
+        choose_faculty(user_id)
 
 
 def save_dict():
@@ -32,151 +42,140 @@ def save_dict():
         json.dump(di, f)
 
 
-def choose_year(user_id):
-    keyboard = types.InlineKeyboardMarkup(row_width=3) # inline keyboard
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    # try:
+    user_id = str(call.from_user.id)
 
-    year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1)
-    year_2 = types.InlineKeyboardButton(text='2', callback_data=Y2)
-    year_3 = types.InlineKeyboardButton(text='3', callback_data=Y3)
+    FACULTIES = {FACULTY_0}
+    if call.data in FACULTIES:  # call.data = callback data that we sent when pressed the button
+        di[str(user_id)][FACULTY_KEY] = call.data
+        save_dict()
+        choose_form(user_id)
+
+    FORMS = {FORM_0, FORM_1, FORM_2}
+    if call.data in FORMS:
+        di[str(user_id)][FORM_KEY] = call.data
+        save_dict()
+        if call.data == FORM_0:
+            choose_year_och(user_id)
+        elif call.data == FORM_1:
+            choose_year_och_zao(user_id)
+        elif call.data == FORM_2:
+            choose_year_och_zao(user_id)
+
+    YEAR_CALLBACKS = {Y1_F0, Y2_F0, Y3_F0, Y1S_F0, Y2S_F0, Y3S_F0, Y4_F0,
+                      Y1_F1, Y1S_F1, Y2S_F1,
+                      Y1S_F2, Y3S_F2, Y4S_F2}
+    if call.data in YEAR_CALLBACKS:
+        di[str(user_id)][YEAR_KEY] = call.data
+        save_dict()
+        # if year'' then show groups of this year
+        # choose_group(di[user_id]['year'])
+
+    # if call.data == "year2":
+    #     chosen_year = 'year2'
+    #     keyboard = types.InlineKeyboardMarkup(row_width=1)
+    #     group_23_1 = types.InlineKeyboardButton(text='о. ИД 23.1/Б-21', callback_data='group23_1')
+    #     group_23_2 = types.InlineKeyboardButton(text='о. ИД 23.2/Б-21', callback_data='group23_2')
+    #     group_23_3 = types.InlineKeyboardButton(text='о. ИД 23.3/Б-21', callback_data='group23_3')
+    #     group_23_4 = types.InlineKeyboardButton(text='о. ИД 23.4/Б-21', callback_data='group23_4')
+    #     keyboard.add(group_23_1, group_23_2, group_23_3, group_23_4)
+    #     bot.send_message(call.message.chat.id, text='Whats your group ?', reply_markup=keyboard)
+    #
+
+# except Exception as e:
+#     print(repr(e))
+
+
+def choose_faculty(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+    button = types.InlineKeyboardButton(text='IT Faculty', callback_data=FACULTY_0)
+    keyboard.add(button)
+    question = 'Whats your Faculty?'
+    bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def choose_form(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+    button_och = types.InlineKeyboardButton(text='Ochnaya', callback_data=FORM_0)
+    button_och_zao = types.InlineKeyboardButton(text='Ochno-zaochaya vihodnogo dnya', callback_data=FORM_1)
+    button_zao = types.InlineKeyboardButton(text='Zaochnaya vikhodnogo dnya', callback_data=FORM_2)
+
+    keyboard.add(button_och, button_och_zao, button_zao)
+    question = 'Whats your Form?'
+    bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def choose_group(year):
+    if year == Y1_F0:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+
+        group_0 = types.InlineKeyboardButton(text=G0_Y1_F0, callback_data=G0_Y1_F0)
+        group_1 = types.InlineKeyboardButton(text=G1_Y1_F0, callback_data=G1_Y1_F0)
+        keyboard.add(group_0, group_1)
+
+        question = 'Whats your group?'
+        bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def show_menu(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
+
+    schedule_today = types.InlineKeyboardButton(text='Today', callback_data='schedule today')
+    schedule_tomorrow = types.InlineKeyboardButton(text='Tomorrow', callback_data='schedule tomorrow')
+    schedule_week = types.InlineKeyboardButton(text='Week', callback_data='schedule week')
+
+    switch_group = types.InlineKeyboardButton(text='choose another group', callback_data='switch group')
+
+    keyboard.add(schedule_today, schedule_tomorrow, schedule_week, switch_group)
+
+    question = '23.4 Schedule'
+    bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def choose_year_och(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
+
+    year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F0)
+    year_2 = types.InlineKeyboardButton(text='2', callback_data=Y2_F0)
+    year_3 = types.InlineKeyboardButton(text='3', callback_data=Y3_F0)
     keyboard.add(year_1, year_2, year_3)
 
-    year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S)
-    year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S)
-    year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S)
+    year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F0)
+    year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F0)
+    year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F0)
     keyboard.add(year_1_spo, year_2_spo, year_3_spo)
 
-    year_4 = types.InlineKeyboardButton(text='4', callback_data=Y4)
+    year_4 = types.InlineKeyboardButton(text='4', callback_data=Y4_F0)
     keyboard.add(year_4)
 
     question = 'Whats your year?'
     bot.send_message(user_id, text=question, reply_markup=keyboard)
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    YEAR_CALLBACKS = {Y1, Y2, Y3, Y4, Y1S, Y2S, Y3S}
-    if call.data in YEAR_CALLBACKS:
-        di[str(call.from_user.id)][YEAR_KEY] = call.data
-        save_dict()
-        #choose_group(di[user_key_id]['year'])
-    
 
-def choose_group(year):
-    pass
+def choose_year_och_zao(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
 
-        # after any choices shows you menu 
-                # choose another group
-                # Schedule for today
-                # tomorrow
-                # week
+    year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F1)
+    year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F1)
+    year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F1)
+    keyboard.add(year_1, year_1_spo, year_2_spo)
 
-    
+    question = 'Whats your year?'
+    bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
+def choose_year_zao(user_id):
+    keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
 
+    year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F2)
+    year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F2)
+    year_4_spo = types.InlineKeyboardButton(text='4spo', callback_data=Y4S_F2)
+    keyboard.add(year_1_spo, year_3_spo, year_4_spo)
 
+    question = 'Whats your year?'
+    bot.send_message(user_id, text=question, reply_markup=keyboard)
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def your_group(call, message=None):
-#     # try:
-#         if call.message:
-#             question = 'Whats your group ?'
-
-#             if call.data == "menu": #call.data это callback_data, которую мы указали при объявлении кнопки
-#                 keyboard = types.InlineKeyboardMarkup(row_width=3) # inline keyboard
-
-#                 year_1 = types.InlineKeyboardButton(text='1', callback_data='year1')
-#                 year_2 = types.InlineKeyboardButton(text='2', callback_data='year2')
-#                 year_3 = types.InlineKeyboardButton(text='3', callback_data='year3')
-#                 keyboard.add(year_1, year_2, year_3)
-
-#                 year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data='year1spo')
-#                 year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data='year2spo')
-#                 year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data='year3spo')
-#                 keyboard.add(year_1_spo, year_2_spo, year_3_spo)
-
-#                 year_4 = types.InlineKeyboardButton(text='4', callback_data='year4')
-#                 keyboard.add(year_4)
-
-#                 question = 'Whats your year ?'
-#                 bot.send_message(message.from_user.id, text=question, reply_markup=keyboard)
-
-#             elif call.data == "year1": 
-#                 chosen_year = 'year1'
-#                 # groups here
-#             elif call.data == "year2":
-#                 chosen_year = 'year2'
-#                 keyboard = types.InlineKeyboardMarkup(row_width=1)
-#                 group_23_1 = types.InlineKeyboardButton(text='о. ИД 23.1/Б-21', callback_data='group23_1')
-#                 group_23_2 = types.InlineKeyboardButton(text='о. ИД 23.2/Б-21', callback_data='group23_2')
-#                 group_23_3 = types.InlineKeyboardButton(text='о. ИД 23.3/Б-21', callback_data='group23_3')
-#                 group_23_4 = types.InlineKeyboardButton(text='о. ИД 23.4/Б-21', callback_data='group23_4')
-#                 keyboard.add(group_23_1, group_23_2, group_23_3, group_23_4)
-#                 bot.send_message(call.message.chat.id, text=question, reply_markup=keyboard)
-#             elif call.data == "year3":
-#                 chosen_year = 'year3'
-#                 bot.send_message(call.message.chat.id, 'Your year is 3 ?')
-#             elif call.data == "year4":
-#                 chosen_year = 'year4'
-#                 bot.send_message(call.message.chat.id, 'Your year is 4 ?')
-
-#             elif call.data == "year1spo":
-#                 chosen_year = 'year1spo'
-#                 bot.send_message(call.message.chat.id, 'Your year is 1spo ?')
-#             elif call.data == "year2spo":
-#                 chosen_year = 'year2spo'
-#                 bot.send_message(call.message.chat.id, 'Your year is 2spo ?')
-#             elif call.data == "year3spo":
-#                 chosen_year = 'year3spo'
-#                 bot.send_message(call.message.chat.id, 'Your year is 3spo ?')
-        
-
-
-
-#             elif call.data == "group23_1": 
-#                 chosen_group = 'group23_1'
-#                 bot.send_message(call.message.chat.id, 'You have been saved as member of 23_1')
-#             elif call.data == "group23_2":
-#                 chosen_group = 'group23_2'
-#                 bot.send_message(call.message.chat.id, 'You have been saved as member of 23_2')
-#             elif call.data == "group23_3":
-#                 chosen_group = 'group23_3'
-#                 bot.send_message(call.message.chat.id, 'You have been saved as member of 23_3')
-#             elif call.data == "group23_4":
-                
-#                 chosen_group = 'group23_4'
-#                 bot.send_message(call.message.chat.id, 'You have been saved as member of 23_4')
-#                 # save user choice 
-
-
-#                 # load user choice
-#                 # menu
-                
-#                 keyboard = types.InlineKeyboardMarkup(row_width=3) # inline keyboard
-   
-#                 schedule_today = types.InlineKeyboardButton(text='Today', callback_data='scheduletoday')
-#                 schedule_tomorrow = types.InlineKeyboardButton(text='Tomorrow', callback_data='scheduletomorrow')
-#                 schedule_week = types.InlineKeyboardButton(text='Week', callback_data='scheduleweek')
-
-#                 switch_group = types.InlineKeyboardButton(text='choose another group', callback_data='switchgroup')
-
-#                 keyboard.add(schedule_today, schedule_tomorrow, schedule_week, switch_group)
-
-#                 question = '23.4 Schedule'
-#                 bot.send_message(call.message.chat.id, text=question, reply_markup=keyboard)
-                
-#             elif call.data == "scheduletoday":
-#                 bot.send_message(call.message.chat.id, 'Schedule for today:')
-#             elif call.data == "scheduletomorrow": 
-#                 bot.send_message(call.message.chat.id, 'Schedule for tomorrow:')
-#             elif call.data == "scheduleweek":
-#                 bot.send_message(call.message.chat.id, 'Schedule for week:')
-#             elif call.data == "switchgroup":
-#                 # load last entered year
-
-#                 bot.send_message(call.message.chat.id, 'Choose your group')
-
- 
-#     # except Exception as e:
-#     #     print(repr(e))
 
 bot.polling(none_stop=True)
