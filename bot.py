@@ -21,7 +21,7 @@ def check(message):
         if di[user_id][FORM_KEY]:
             if di[user_id][YEAR_KEY]:
                 if di[user_id][GROUP_KEY]:
-                    show_menu(user_id)
+                    show_menu(user_id, di[user_id][GROUP_KEY])
                 else:
                     save_dict()
                     choose_group_and_check_year(user_id, di[user_id][YEAR_KEY])
@@ -30,7 +30,7 @@ def check(message):
                 choose_year_and_check_form(user_id, di[user_id][FORM_KEY])
         else:
             save_dict()
-            choose_form_menu(user_id)
+            choose_form_menu(user_id, di[user_id][FACULTY_KEY])
     else:
         save_dict()
         choose_faculty_menu(user_id)
@@ -50,7 +50,7 @@ def callback_query(call):
     if call.data in FACULTIES:  # call.data = callback data that we sent when pressed the button
         di[str(user_id)][FACULTY_KEY] = call.data
         save_dict()
-        choose_form_menu(user_id)
+        choose_form_menu(user_id, call.data)
 
     FORMS = {FORM_0, FORM_1, FORM_2}
     if call.data in FORMS:
@@ -85,7 +85,7 @@ def callback_query(call):
     if call.data in GROUPS:
         di[str(user_id)][GROUP_KEY] = call.data
         save_dict()
-        show_menu(user_id)
+        show_menu(user_id, call.data)
 
     # except Exception as e:
     #     print(repr(e))
@@ -99,19 +99,19 @@ def choose_faculty_menu(user_id):
     bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
-def choose_form_menu(user_id):
+def choose_form_menu(user_id, faculty):
+    question = faculty + ' Whats your Form?'
     keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
     button_och = types.InlineKeyboardButton(text='Ochnaya', callback_data=FORM_0)
     button_och_zao = types.InlineKeyboardButton(text='Ochno-zaochaya vihodnogo dnya', callback_data=FORM_1)
     button_zao = types.InlineKeyboardButton(text='Zaochnaya vikhodnogo dnya', callback_data=FORM_2)
 
     keyboard.add(button_och, button_och_zao, button_zao)
-    question = 'Whats your Form?'
     bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
 def choose_group_and_check_year(user_id, year):
-    question = 'Whats your group?'
+    question = year + ' Whats your group?'
     if year == Y1_F0:
         keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
         group_0 = types.InlineKeyboardButton(text=G0_Y1_F0, callback_data=G0_Y1_F0)
@@ -193,7 +193,7 @@ def choose_group_and_check_year(user_id, year):
         keyboard.add(group_0)
 
 
-def show_menu(user_id):
+def show_menu(user_id, group):
     keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
 
     schedule_today = types.InlineKeyboardButton(text='Today', callback_data='schedule today')
@@ -204,11 +204,12 @@ def show_menu(user_id):
 
     keyboard.add(schedule_today, schedule_tomorrow, schedule_week, switch_group)
 
-    question = '*group* Schedule'
+    question = f'{group} Schedule'
     bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
 def choose_year_and_check_form(user_id, form):
+    question = form + ' Whats your year?'
     if form == FORM_0:
         keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
 
@@ -225,7 +226,6 @@ def choose_year_and_check_form(user_id, form):
         year_4 = types.InlineKeyboardButton(text='4', callback_data=Y4_F0)
         keyboard.add(year_4)
 
-        question = 'Whats your year?'
         bot.send_message(user_id, text=question, reply_markup=keyboard)
     elif form == FORM_1:
         keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
@@ -235,7 +235,6 @@ def choose_year_and_check_form(user_id, form):
         year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F1)
         keyboard.add(year_1, year_1_spo, year_2_spo)
 
-        question = 'Whats your year?'
         bot.send_message(user_id, text=question, reply_markup=keyboard)
     elif form == FORM_2:
         keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
@@ -245,7 +244,6 @@ def choose_year_and_check_form(user_id, form):
         year_4_spo = types.InlineKeyboardButton(text='4spo', callback_data=Y4S_F2)
         keyboard.add(year_1_spo, year_3_spo, year_4_spo)
 
-        question = 'Whats your year?'
         bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
