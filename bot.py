@@ -21,7 +21,7 @@ def check(message):
         if di[user_id][FORM_KEY]:
             if di[user_id][YEAR_KEY]:
                 if di[user_id][GROUP_KEY]:
-                    show_menu(user_id)  # not working?
+                    show_menu(user_id)
                 else:
                     save_dict()
                     choose_group_and_check_year(user_id, di[user_id][YEAR_KEY])
@@ -64,7 +64,7 @@ def callback_query(call):
     if call.data in YEARS_OF_IT:
         di[str(user_id)][YEAR_KEY] = call.data
         save_dict()
-        choose_year_and_check_form(user_id, di[user_id][YEAR_KEY])
+        choose_group_and_check_year(user_id, call.data)
 
     GROUPS = {G0_Y1_F0, G1_Y1_F0,
               G0_Y2_F0, G1_Y2_F0, G2_Y2_F0, G3_Y2_F0, G4_Y2_F0,
@@ -85,7 +85,7 @@ def callback_query(call):
     if call.data in GROUPS:
         di[str(user_id)][GROUP_KEY] = call.data
         save_dict()
-        choose_group_and_check_year(user_id, di[user_id][GROUP_KEY])
+        show_menu(user_id)
 
     # except Exception as e:
     #     print(repr(e))
@@ -164,6 +164,34 @@ def choose_group_and_check_year(user_id, year):
 
         bot.send_message(user_id, text=question, reply_markup=keyboard)
 
+    elif year == Y1_F1:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y1_F1, callback_data=G0_Y1_F1)
+        keyboard.add(group_0)
+    elif year == Y1S_F1:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y1S_F1, callback_data=G0_Y1S_F1)
+        keyboard.add(group_0)
+    elif year == Y2S_F1:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y2S_F1, callback_data=G0_Y2S_F1)
+        group_1 = types.InlineKeyboardButton(text=G1_Y2S_F1, callback_data=G1_Y2S_F1)
+        keyboard.add(group_0, group_1)
+
+    elif year == Y1S_F2:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y1S_F2, callback_data=G0_Y1S_F2)
+        group_1 = types.InlineKeyboardButton(text=G1_Y2S_F1, callback_data=G1_Y2S_F1)
+        keyboard.add(group_0, group_1)
+    elif year == Y3S_F2:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y3S_F2, callback_data=G0_Y3S_F2)
+        keyboard.add(group_0)
+    elif year == Y4S_F2:
+        keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
+        group_0 = types.InlineKeyboardButton(text=G0_Y4S_F2, callback_data=G0_Y4S_F2)
+        keyboard.add(group_0)
+
 
 def show_menu(user_id):
     keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
@@ -222,4 +250,3 @@ def choose_year_and_check_form(user_id, form):
 
 
 bot.polling(none_stop=True)
-
