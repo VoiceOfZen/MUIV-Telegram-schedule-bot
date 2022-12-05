@@ -1,2 +1,2 @@
 # MUIV-Telegram-schedule-bot
-Here will be muiv tg schedule bot
+Here is my MUIV telegram schedule bot
