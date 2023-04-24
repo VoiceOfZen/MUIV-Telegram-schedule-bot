@@ -13,7 +13,7 @@ with open('./users.txt') as fi:
 @bot.message_handler(content_types=['text'])
 def check(message):
     user_id = str(message.chat.id)
-    date_from_message(message.date)
+    print(date_from_message(message.date))
 
     if user_id not in di:
         di[user_id] = {FACULTY_KEY: 0, FORM_KEY: 0, YEAR_KEY: 0, GROUP_KEY: 0}
@@ -104,11 +104,9 @@ def callback_query(call):
 def date_from_message(timestamp):
     utc_offset = 3  # UTC+3
     date = datetime.datetime.utcfromtimestamp(timestamp) + datetime.timedelta(hours=utc_offset)
-
     day_of_week = date.strftime("%A")
 
-    print(date)
-    print(day_of_week)
+    return f"Today is {date.date()} \nTime {date.time()} UTC{utc_offset:+03d}, \nDay of the week {day_of_week}"
 
 
 def choose_faculty_menu(user_id):
