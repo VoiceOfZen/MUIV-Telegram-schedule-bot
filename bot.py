@@ -106,7 +106,19 @@ def date_from_message(timestamp):
     date = datetime.datetime.utcfromtimestamp(timestamp) + datetime.timedelta(hours=utc_offset)
     day_of_week = date.strftime("%A")
 
-    return f"Today is {date.date()} \nTime {date.time()} UTC{utc_offset:+03d}, \nDay of the week {day_of_week}"
+    output = f"Today is {date.date()} \nTime {date.time()} UTC{utc_offset:+03d}, \nDay of the week {day_of_week}\n"
+
+    # Get tomorrow's date
+    tomorrow = date + datetime.timedelta(days=1)
+    output += f"Tomorrow is {tomorrow.date()}\n"
+
+    # Get all seven days of the current week
+    week_start = date - datetime.timedelta(days=date.weekday())
+    for i in range(7):
+        current_day = week_start + datetime.timedelta(days=i)
+        output += f"{current_day.strftime('%A')}: {current_day.date()}\n"
+
+    return output
 
 
 def choose_faculty_menu(user_id):
