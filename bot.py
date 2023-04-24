@@ -1,8 +1,7 @@
 import telebot
+import datetime
 import json
-
 import config
-
 from constants import *
 from telebot import types
 
@@ -11,14 +10,10 @@ with open('./users.txt') as fi:
     di = json.load(fi)
 
 
-def add_keyboard_back_button(keyboard):
-    back = types.InlineKeyboardButton(text='в начало', callback_data='back')
-    keyboard.add(back)
-
-
 @bot.message_handler(content_types=['text'])
 def check(message):
     user_id = str(message.chat.id)
+    date_from_message(message.date)
 
     if user_id not in di:
         di[user_id] = {FACULTY_KEY: 0, FORM_KEY: 0, YEAR_KEY: 0, GROUP_KEY: 0}
@@ -42,11 +37,6 @@ def check(message):
         choose_faculty_menu(user_id)
 
 
-def save_dict():
-    with open('./users.txt', 'w') as f:
-        json.dump(di, f)
-
-
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     # try:
@@ -58,178 +48,13 @@ def callback_query(call):
         choose_faculty_menu(user_id)
 
     if call.data == 'schedule today':
-        question = """
-Расписание на сегодня для группы БАП2201:
-Сейчас неделя №15, нечётная.
-—————————
-1. 09:30 - 11:05
-Современные интернет-технологии
-Лекция (до 15 нед.)
-Трубникова Н. В. | А-171 (А)
-—————————
-2. 11:20 - 12:55
-Введение в информационные технологии
-Лаб. занятие (до 17 нед.)
-Трубникова Н. В. | А-106 (А)
-—————————
-3. 13:10 - 14:45
-Физическая культура и спорт
-Практика (до 17 нед.)
-Саблин А. Б. | Спортзал №3 (А)
-—————————
-4. Занятия нет.
-—————————
-5. Занятия нет.
-"""
+        question = "TODAY"
         bot.send_message(user_id, text=question)
     elif call.data == 'schedule tomorrow':
-        question = """
-Расписание на завтра для группы БАП2201:
-Будет неделя №15, нечётная.
-—————————
-1. Занятия нет.
-—————————
-2. 11:20 - 12:55
-Информационные технологии и программирование
-Лаб. занятие (до 13 нед.)
-Юсков И. О. // Гуриков С. Р. | 223 (ОП)
-—————————
-3. 13:10 - 14:45
-Иностранный язык
-Практика (до 17 нед.)
-Чупак Н. М. | 426 (ОП)
-—————————
-4. 15:25 - 17:00
-Высшая математика
-Практика (до 17 нед.)
-Ильина Е. В. | 426 (ОП)
-—————————
-5. Занятия нет."""
+        question = "TOMORROW"
         bot.send_message(user_id, text=question)
     elif call.data == 'schedule week':
-        question = """
-Расписание на текущую неделю для группы БАП2201:
-Сейчас неделя №15, нечётная.
-
-Понедельник
-—————————
-1. Занятия нет.
-—————————
-2. Занятия нет.
-—————————
-3. Занятия нет.
-—————————
-4. Занятия нет.
-—————————
-5. Занятия нет.
-
-Вторник
-—————————
-1. 09:30 - 11:05
-Современные интернет-технологии
-Лекция (до 15 нед.)
-Трубникова Н. В. | А-171 (А)
-—————————
-2. 11:20 - 12:55
-Введение в информационные технологии
-Лаб. занятие (до 17 нед.)
-Трубникова Н. В. | А-106 (А)
-—————————
-3. 13:10 - 14:45
-Физическая культура и спорт
-Практика (до 17 нед.)
-Саблин А. Б. | Спортзал №3 (А)
-—————————
-4. Занятия нет.
-—————————
-5. Занятия нет.
-
-Среда
-—————————
-1. Занятия нет.
-—————————
-2. 11:20 - 12:55
-Информационные технологии и программирование
-Лаб. занятие (до 13 нед.)
-Юсков И. О. // Гуриков С. Р. | 223 (ОП)
-—————————
-3. 13:10 - 14:45
-Иностранный язык
-Практика (до 17 нед.)
-Чупак Н. М. | 426 (ОП)
-—————————
-4. 15:25 - 17:00
-Высшая математика
-Практика (до 17 нед.)
-Ильина Е. В. | 426 (ОП)
-—————————
-5. Занятия нет.
-
-Четверг
-—————————
-1. 09:30 - 11:05
-Современные интернет-технологии
-Лаб. занятие (до 17 нед.)
-Трубникова Н. В. | А-421 (А)
-—————————
-2. 11:20 - 12:55
-Введение в профессию
-Практика (до 17 нед.)
-Усачёв В. А. | А-171 (А)
-—————————
-3. 13:10 - 14:45
-Физическая культура и спорт
-Практика (до 17 нед.)
-Саблин А. Б. | Спортзал №3 (А)
-—————————
-4. Занятия нет.
-—————————
-5. Занятия нет.
-
-Пятница
-—————————
-1. Занятия нет.
-—————————
-2. Занятия нет.
-—————————
-3. 13:10 - 14:45
-Линейная алгебра и аналитическая геометрия
-Лекция (до 17 нед.)
-Ильина Е. В. | 450 (ОП)
-—————————
-4. 15:25 - 17:00
-Физическая культура и спорт
-Практика (с 7 до 13 нед.)
-Саблин А. Б. | Спортзал №3 (ОП)
-—————————
-5. 17:15 - 18:50
-Высшая математика
-Практика (на 11 нед.)
-Ильина Е. В. | 406 (ОП)
-
-Суббота
-—————————
-1. Занятия нет.
-—————————
-2. 11:20 - 12:55
-Высшая математика
-Лекция (до 17 нед.)
-Ильина Е. В. | 436 (ОП)
-—————————
-3. 13:10 - 14:45
-Линейная алгебра и аналитическая геометрия
-Практика (до 17 нед.)
-Ильина Е. В. | 406 (ОП)
-—————————
-4. 15:25 - 17:00
-Философия
-Лекция (до 18 нед.)
-Шаколюкова В. Д. | 131 (ОП)
-—————————
-5. 17:15 - 18:50
-Философия
-Лекция (до 18 нед.)
-Шаколюкова В. Д. | 131 (ОП)"""
+        question = "WEEK"
         bot.send_message(user_id, text=question)
     FACULTIES = {FACULTY_0}
     if call.data in FACULTIES:  # call.data = callback data that we sent when pressed the button
@@ -276,6 +101,16 @@ def callback_query(call):
     #     print(repr(e))
 
 
+def date_from_message(timestamp):
+    utc_offset = 3  # UTC+3
+    date = datetime.datetime.utcfromtimestamp(timestamp) + datetime.timedelta(hours=utc_offset)
+
+    day_of_week = date.strftime("%A")
+
+    print(date)
+    print(day_of_week)
+
+
 def choose_faculty_menu(user_id):
     keyboard = types.InlineKeyboardMarkup(row_width=1)  # inline keyboard
     button = types.InlineKeyboardButton(text='Факультет ит', callback_data=FACULTY_0)
@@ -295,6 +130,48 @@ def choose_form_menu(user_id, faculty):
     add_keyboard_back_button(keyboard)
 
     bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def choose_year_and_check_form(user_id, form):
+    question = form + ' на каком ты году обучения?'
+    if form == FORM_0:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
+
+        year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F0)
+        year_2 = types.InlineKeyboardButton(text='2', callback_data=Y2_F0)
+        year_3 = types.InlineKeyboardButton(text='3', callback_data=Y3_F0)
+        keyboard.add(year_1, year_2, year_3)
+
+        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F0)
+        year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F0)
+        year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F0)
+        keyboard.add(year_1_spo, year_2_spo, year_3_spo)
+
+        year_4 = types.InlineKeyboardButton(text='4', callback_data=Y4_F0)
+        keyboard.add(year_4)
+        add_keyboard_back_button(keyboard)
+
+        bot.send_message(user_id, text=question, reply_markup=keyboard)
+    elif form == FORM_1:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
+
+        year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F1)
+        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F1)
+        year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F1)
+        keyboard.add(year_1, year_1_spo, year_2_spo)
+        add_keyboard_back_button(keyboard)
+
+        bot.send_message(user_id, text=question, reply_markup=keyboard)
+    elif form == FORM_2:
+        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
+
+        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F2)
+        year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F2)
+        year_4_spo = types.InlineKeyboardButton(text='4spo', callback_data=Y4S_F2)
+        keyboard.add(year_1_spo, year_3_spo, year_4_spo)
+        add_keyboard_back_button(keyboard)
+
+        bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
 def choose_group_and_check_year(user_id, year):
@@ -404,48 +281,6 @@ def choose_group_and_check_year(user_id, year):
         bot.send_message(user_id, text=question, reply_markup=keyboard)
 
 
-def choose_year_and_check_form(user_id, form):
-    question = form + ' на каком ты году обучения?'
-    if form == FORM_0:
-        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
-
-        year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F0)
-        year_2 = types.InlineKeyboardButton(text='2', callback_data=Y2_F0)
-        year_3 = types.InlineKeyboardButton(text='3', callback_data=Y3_F0)
-        keyboard.add(year_1, year_2, year_3)
-
-        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F0)
-        year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F0)
-        year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F0)
-        keyboard.add(year_1_spo, year_2_spo, year_3_spo)
-
-        year_4 = types.InlineKeyboardButton(text='4', callback_data=Y4_F0)
-        keyboard.add(year_4)
-        add_keyboard_back_button(keyboard)
-
-        bot.send_message(user_id, text=question, reply_markup=keyboard)
-    elif form == FORM_1:
-        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
-
-        year_1 = types.InlineKeyboardButton(text='1', callback_data=Y1_F1)
-        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F1)
-        year_2_spo = types.InlineKeyboardButton(text='2spo', callback_data=Y2S_F1)
-        keyboard.add(year_1, year_1_spo, year_2_spo)
-        add_keyboard_back_button(keyboard)
-
-        bot.send_message(user_id, text=question, reply_markup=keyboard)
-    elif form == FORM_2:
-        keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
-
-        year_1_spo = types.InlineKeyboardButton(text='1spo', callback_data=Y1S_F2)
-        year_3_spo = types.InlineKeyboardButton(text='3spo', callback_data=Y3S_F2)
-        year_4_spo = types.InlineKeyboardButton(text='4spo', callback_data=Y4S_F2)
-        keyboard.add(year_1_spo, year_3_spo, year_4_spo)
-        add_keyboard_back_button(keyboard)
-
-        bot.send_message(user_id, text=question, reply_markup=keyboard)
-
-
 def show_menu(user_id, group):
     keyboard = types.InlineKeyboardMarkup(row_width=3)  # inline keyboard
 
@@ -457,6 +292,16 @@ def show_menu(user_id, group):
 
     question = f'расписание группы {group}'
     bot.send_message(user_id, text=question, reply_markup=keyboard)
+
+
+def add_keyboard_back_button(keyboard):
+    back = types.InlineKeyboardButton(text='в начало', callback_data='back')
+    keyboard.add(back)
+
+
+def save_dict():
+    with open('./users.txt', 'w') as f:
+        json.dump(di, f)
 
 
 bot.polling(none_stop=True)
