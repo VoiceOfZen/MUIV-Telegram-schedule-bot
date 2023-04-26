@@ -18,87 +18,50 @@ def check(message):
     if user_id not in di:
         di[user_id] = {FACULTY_KEY: 0, FORM_KEY: 0, YEAR_KEY: 0, GROUP_KEY: 0}
 
-    if di[user_id][FACULTY_KEY]:
-        if di[user_id][FORM_KEY]:
-            if di[user_id][YEAR_KEY]:
-                if di[user_id][GROUP_KEY]:
-                    show_menu(user_id, di[user_id][GROUP_KEY])
-                else:
-                    save_dict()
-                    choose_group_and_check_year(user_id, di[user_id][YEAR_KEY])
-            else:
-                save_dict()
-                choose_year_and_check_form(user_id, di[user_id][FORM_KEY])
-        else:
-            save_dict()
-            choose_form_menu(user_id, di[user_id][FACULTY_KEY])
-    else:
-        save_dict()
+    if not di[user_id][FACULTY_KEY]:
         choose_faculty_menu(user_id)
+    elif not di[user_id][FORM_KEY]:
+        choose_form_menu(user_id, di[user_id][FACULTY_KEY])
+    elif not di[user_id][YEAR_KEY]:
+        choose_year_and_check_form(user_id, di[user_id][FORM_KEY])
+    elif not di[user_id][GROUP_KEY]:
+        choose_group_and_check_year(user_id, di[user_id][YEAR_KEY])
+    else:
+        show_menu(user_id, di[user_id][GROUP_KEY])
+    save_dict()
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    # try:
     user_id = str(call.from_user.id)
+    data = call.data
 
-    if call.data == 'back':
+    if data == 'back':
         di[user_id] = {FACULTY_KEY: 0, FORM_KEY: 0, YEAR_KEY: 0, GROUP_KEY: 0}
-        save_dict()
         choose_faculty_menu(user_id)
 
-    if call.data == 'schedule today':
-        question = "TODAY"
-        bot.send_message(user_id, text=question)
-    elif call.data == 'schedule tomorrow':
-        question = "TOMORROW"
-        bot.send_message(user_id, text=question)
-    elif call.data == 'schedule week':
-        question = "WEEK"
-        bot.send_message(user_id, text=question)
-    FACULTIES = {FACULTY_0}
-    if call.data in FACULTIES:  # call.data = callback data that we sent when pressed the button
-        di[str(user_id)][FACULTY_KEY] = call.data
-        save_dict()
-        choose_form_menu(user_id, call.data)
+    elif data == 'schedule today':
+        bot.send_message(user_id, text="TODAY")
+    elif data == 'schedule tomorrow':
+        bot.send_message(user_id, text="TOMORROW")
+    elif data == 'schedule week':
+        bot.send_message(user_id, text="WEEK")
 
-    FORMS = {FORM_0, FORM_1, FORM_2}
-    if call.data in FORMS:
-        di[str(user_id)][FORM_KEY] = call.data
-        save_dict()
-        choose_year_and_check_form(user_id, call.data)
+    elif data in FACULTIES:
+        di[user_id][FACULTY_KEY] = data
+        choose_form_menu(user_id, data)
+    elif data in FORMS:
+        di[user_id][FORM_KEY] = data
+        choose_year_and_check_form(user_id, data)
+    elif data in YEARS_OF_IT:
+        di[user_id][YEAR_KEY] = data
+        choose_group_and_check_year(user_id, data)
+    elif data in GROUPS:
+        di[user_id][GROUP_KEY] = data
+        show_menu(user_id, data)
 
-    YEARS_OF_IT = {Y1_F0, Y2_F0, Y3_F0, Y1S_F0, Y2S_F0, Y3S_F0, Y4_F0,
-                   Y1_F1, Y1S_F1, Y2S_F1,
-                   Y1S_F2, Y3S_F2, Y4S_F2}
-    if call.data in YEARS_OF_IT:
-        di[str(user_id)][YEAR_KEY] = call.data
-        save_dict()
-        choose_group_and_check_year(user_id, call.data)
+    save_dict()
 
-    GROUPS = {G0_Y1_F0, G1_Y1_F0,
-              G0_Y2_F0, G1_Y2_F0, G2_Y2_F0, G3_Y2_F0, G4_Y2_F0,
-              G0_Y3_F0, G1_Y3_F0, G2_Y3_F0,
-              G0_Y1S_F0,
-              G0_Y2S_F0,
-              G0_Y3S_F0,
-              G0_Y4_F0, G1_Y4_F0, G2_Y4_F0,
-
-              G0_Y1_F1,
-              G0_Y1S_F1,
-              G0_Y2S_F1, G1_Y2S_F1,
-
-              G0_Y1S_F2, G1_Y1S_F2,
-              G0_Y3S_F2,
-              G0_Y4S_F2
-              }
-    if call.data in GROUPS:
-        di[str(user_id)][GROUP_KEY] = call.data
-        save_dict()
-        show_menu(user_id, call.data)
-
-    # except Exception as e:
-    #     print(repr(e))
 
 
 def date_from_message(timestamp):
