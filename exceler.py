@@ -22,46 +22,47 @@ for row in range(num_rows):
         group_row_indices.append(row)
 
 if group_row_indices:
-    # Print the group information
-    print(f"Group: {group_name}")
+    # Save the group information to a text file with UTF-8 encoding
+    with open('group_schedule.txt', 'w', encoding='utf-8') as file:
+        file.write(f"Group: {group_name}\n\n")
 
-    # Define the column indices for the days of the week
-    day_column_indices = [1, 2, 3, 4, 5]  # Adjust these indices as per your column positions
+        # Define the column indices for the days of the week
+        day_column_indices = [1, 2, 3, 4, 5]  # Adjust these indices as per your column positions
 
-    for group_row_index in group_row_indices:
-        # Iterate over the day column indices
-        for day_column_index in day_column_indices:
-            # Get the day of the week
-            day_of_week = sheet.cell_value(group_row_index, day_column_index)
+        for group_row_index in group_row_indices:
+            # Iterate over the day column indices
+            for day_column_index in day_column_indices:
+                # Get the day of the week
+                day_of_week = sheet.cell_value(group_row_index, day_column_index)
 
-            # Get the schedule for the day
-            schedule = []
-            time_column_index = 7  # Starting column index for time slots (adjust as per your column position)
-            while time_column_index < num_cols:
-                time_slot = sheet.cell_value(group_row_index, time_column_index)
-                if time_slot:
-                    schedule.append(time_slot)
-                time_column_index += 1
+                # Get the schedule for the day
+                schedule = []
+                time_column_index = 7  # Starting column index for time slots (adjust as per your column position)
+                while time_column_index < num_cols:
+                    time_slot = sheet.cell_value(group_row_index, time_column_index)
+                    if time_slot:
+                        schedule.append(time_slot)
+                    time_column_index += 1
 
-            # Print the schedule for the day
-            print(f"\nDay of the Week: {day_of_week}")
-            for time_slot in schedule:
-                print(time_slot)
+                # Write the schedule for the day to the file
+                file.write(f"\nDay of the Week: {day_of_week}\n")
+                for time_slot in schedule:
+                    file.write(f"{time_slot}\n")
 
-        # Get the dates for the group
-        dates = []
-        row_index = group_row_index + 1
-        while row_index < num_rows:
-            date = sheet.cell_value(row_index, 6)
-            if date:
-                dates.append(date)
-            row_index += 1
+            # Get the dates for the group
+            dates = []
+            row_index = group_row_index + 1
+            while row_index < num_rows:
+                date = sheet.cell_value(row_index, 6)
+                if date:
+                    dates.append(date)
+                row_index += 1
 
-        # Print the dates for the group
-        print("\nDates:")
-        for date in dates:
-            print(date)
-        print()
+            # Write the dates for the group to the file
+            file.write("\nDates:\n")
+            for date in dates:
+                file.write(f"{date}\n")
+            file.write("\n")
 
 else:
     print(f"Group {group_name} not found in the sheet.")
